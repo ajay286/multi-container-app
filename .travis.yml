@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ajay286/multi-container-app -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true ajay286/multi-container-app npm test
+
+after_success:
+  - docker build -t ajay286/multi-client  ./client
+  - docker build -t ajay286/multi-nginx  ./nginx
+  - docker build -t ajay286/multi-server  ./server
+  - docker build -t ajay286/multi-worker  ./worker
+  # Log in to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take the build images and push these images to docker repo.
+  - docker push ajay286/multi-client
+  - docker push ajay286/multi-nginx
+  - docker push ajay286/multi-server
+  - docker push ajay286/multi-worker
+
